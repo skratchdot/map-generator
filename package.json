@@ -1,0 +1,15 @@
+{
+  "name": "map-generator",
+  "version": "0.0.0",
+  "description": "a collection of map components for react.js",
+  "main": "index.js",
+  "dependencies": {
+    "d3": "^3.4.13"
+  },
+  "devDependencies": {},
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "skratchdot",
+  "license": "MIT"
+}

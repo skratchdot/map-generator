@@ -1,0 +1,96 @@
+<!DOCTYPE html>
+<meta charset='utf-8'>
+<style>
+    svg {
+        border:1px solid black;
+    }
+    path {
+        fill: black;
+        stroke: white;
+        stroke-width: 1;
+    }
+</style>
+<body>
+<script src='http://d3js.org/d3.v3.min.js'></script>
+<script>
+var width = 960;
+var height = 500;
+var svg = d3.select('body').append('svg')
+    .attr('width', width)
+    .attr('height', height);
+var url;
+url = 'data/geojson/world.json';
+url = 'data/geojson/continents/Europe.json';
+url = 'data/geojson/regions_un/Europe.json';
+url = 'data/geojson/countries/DE.json';
+
+d3.json(url, function(json) {
+    // Create a unit projection.
+    var projection = d3.geo.mercator();//.center(d3.geo.centroid(json));
+    var path = d3.geo.path().projection(projection);
+    svg.selectAll('path').data(json.features).enter().append('path')
+        .attr('d', path)
+        .attr('data-index', function (d, i) {
+        	return i;
+        })
+        .attr('data-country', function (d) {
+        	return d.properties.iso_a2 || d.properties.ISO_A2;
+        })
+        .attr('vector-effect', 'non-scaling-stroke');
+    var stats = {
+		x: {min: Number.MAX_VALUE, max: Number.MIN_VALUE},
+		y: {min: Number.MAX_VALUE, max: Number.MIN_VALUE},
+		items: []
+    };
+    // loop through paths s
+    svg.selectAll('path').each(function (d, i) {
+    	var bbox = this.getBBox();
+    	var props = json.features[i].properties;
+    	var item = {
+    		country: props.iso_a2 || props.ISO_A2,
+    		subdivision: props.code_hasc || props.CODE_HASC,
+    		name: props.name || props.NAME,
+    		type: props.type_en || props.TYPE,
+    		path: this.getAttribute('d')
+    	};
+        stats.x.min = Math.min(stats.x.min, bbox.x);
+        stats.y.min = Math.min(stats.y.min, bbox.y);
+        stats.x.max = Math.max(stats.x.max, bbox.x + bbox.width);
+        stats.y.max = Math.max(stats.y.max, bbox.y + bbox.height);
+    	stats.items.push(item);
+    });
+    // pad min/max
+    /*
+    var padding = 10;
+    stats.x.min -= padding;
+    stats.y.min -= padding;
+    stats.x.max += padding;
+    stats.y.max += padding;
+    */
+    /*
+    stats.x.min = Math.floor(stats.x.min);
+    stats.y.min = Math.floor(stats.y.min);
+    stats.x.max = Math.ceil(stats.x.max);
+    stats.y.max = Math.ceil(stats.y.max);
+    */
+    stats.box_width = stats.x.max - stats.x.min;
+    stats.box_height = stats.y.max - stats.y.min;
+    stats.width = width;
+    stats.height = height;
+    stats.viewBox = stats.x.min + ' ' +
+	    stats.y.min + ' ' + 
+	    stats.box_width + ' ' +
+	    stats.box_height;
+    svg.attr('viewBox', stats.viewBox).attr('preserveAspectRatio', 'xMidYMid');
+    /*
+    svg.append('rect')
+        .attr('x', stats.x.min)
+        .attr('y', stats.y.min)
+        .attr('width', stats.box_width)
+        .attr('height', stats.box_height)
+        .style('stroke', 'red').style('opacity', 0.9).style('fill', 'none');
+    */
+
+    console.log(stats);
+});
+</script>
